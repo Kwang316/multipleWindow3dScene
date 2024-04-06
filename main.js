@@ -110,32 +110,209 @@ else
 
 	function updateNumberOfSpheres() 
 	{
-	    let wins = windowManager.getWindows();
-	
-	    // remove all sphere
-	    spheres.forEach((c) => {
-	        world.remove(c);
-	    });
-	
-	    spheres = [];
-	
-	    // add new spheres based on the current window setup
-	    for (let i = 0; i < wins.length; i++) {
-	        let win = wins[i];
-	
-	        let c = new t.Color();
-	        c.setHSL(i * .1, 1.0, .5);
-	
-	        let s = 50 + i * 25; // Adjust the sphere size as needed
-	        let sphere = new t.Mesh(new t.SphereGeometry(s, 32, 32), new t.MeshBasicMaterial({ color: c, wireframe: true }));
-	        sphere.position.x = win.shape.x + (win.shape.w * .5);
-	        sphere.position.y = win.shape.y + (win.shape.h * .5);
-	
-	        world.add(sphere);
-	        spheres.push(sphere);
-	    }
+		let wins = windowManager.getWindows();
+		
+		// Remove all existing spheres
+		spheres.forEach((c) => {
+		world.remove(c);
+		});
+		spheres = [];
+		
+		// Create a new sphere for each window
+		for (let i = 0; i < wins.length; i++) {
+		let win = wins[i];
+		
+		let c = new t.Color();
+		c.setHSL(i * 0.1, 1.0, 0.5);
+		
+		let sphere = new t.Mesh(
+		new t.SphereGeometry(50 + i * 25, 32, 32),
+		new t.MeshBasicMaterial({ color: c, wireframe: true })
+		);
+		sphere.position.x = win.shape.x + win.shape.w * 0.5;
+		sphere.position.y = win.shape.y + win.shape.h * 0.5;
+		'
+			
+		// Define the Lorenz attractor parameters
+		const lorenzParams = [
+		  { equation: 0, params: [10.0, 30.0, 8 / 3] },
+		  { equation: 1, params: [1.24, 1.1, 4.4, 3.21] },
+		  // Add more Lorenz attractor equations here
+		];
+		}
 	}
+	
+	function initializeSphere(sphere, params) {
+	  // Set the initial position of the sphere based on the Lorenz attractor parameters
+	  sphere.position.set(params.initialX, params.initialY, params.initialZ);
+	
+	  // Initialize the trail positions
+	  for (let i = 0; i < trailLength; i++) {
+	    trail.push(sphere.position.clone());
+	  }
+	}
+	
+	function updateSpherePosition(sphere, params, t) {
+	  // Update the sphere position based on the Lorenz attractor equation associated with the parameters
+	  switch (params.equation) {
+	    case 0:
+	      // Lorenz equation
+	      updateLorenzPosition(sphere, params.params, t);
+	      break;
+	    case 1:
+	      // Chen's attractor
+	      updateChenPosition(sphere, params.params, t);
+	      break;
+	    // Add more cases for other Lorenz attractor equations
+	  }
+	}
+	
+	function updateLorenzPosition(sphere, params, t) {
+	  // Implement the Lorenz equation to update the sphere position
+	  const [a, b, c] = params;
+	  const x = sphere.position.x;
+	  const y = sphere.position.y;
+	  const z = sphere.position.z;
+	
+	  sphere.position.x += (a * (y - x)) * t;
+	  sphere.position.y += (x * (b - z) - y) * t;
+	  sphere.position.z += (x * y - c * z) * t;
+	}
+	
+	function updateChenPosition(sphere, params, t) {
+	  // Implement Chen's attractor equation to update the sphere position
+	  const [a, b, c, d] = params;
+	  const x = sphere.position.x;
+	  const y = sphere.position.y;
+	  const z = sphere.position.z;
+	
+	  sphere.position.x += (-a * x + b * y) * t;
+	  sphere.position.y += (c * y - x * z) * t;
+	  sphere.position.z += ((x * y) / 3 + d * z) * t;
+	}
+	
+	function updateSphereTrail(sphere) 
+	{
+	// Update the sphere trail positions
+	// Use the same approach as in the provided Lorenz attractor code
+	{
+	/// Calculate timestep
+	timestep = clock.getElapsedTime().asSeconds();
+	input_timer += timestep;
+	clock.restart();
 
+	timestep *= speed; // Slow down or speed up time.
+
+	// Update position according to chosen equation u
+	std::vector<float> &m = params[u];
+	switch (u)
+	{
+	case 0: 
+	{	
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>(m[0] * (point[i].y - point[i].x) * timestep);
+			point[i].y += static_cast<float>((point[i].x * (m[1] - point[i].z) - point[i].y) * timestep);
+			point[i].z += static_cast<float>((point[i].x * point[i].y - m[2] * point[i].z) * timestep);
+		}
+		break;
+	}
+	case 1:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			float h1 = 0.5f * (abs(point[i].x + 1) - abs(point[i].x - 1));
+			float h2 = 0.5f * (abs(point[i].y + 1) - abs(point[i].y - 1));
+			float h3 = 0.5f * (abs(point[i].z + 1) - abs(point[i].z - 1));
+
+			point[i].x += static_cast<float>((-point[i].x + m[0] * h1 - m[3] * h2 - m[3] * h3) * timestep);
+			point[i].y += static_cast<float>((-point[i].y - m[3] * h1 + m[1] * h2 - m[2] * h3) * timestep);
+			point[i].z += static_cast<float>((-point[i].z - m[3] * h1 + m[2] * h2 + h3) * timestep);
+		}
+		break;
+	}
+	case 2: 
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>(((point[i].z - m[1]) * point[i].x  - m[3] * point[i].y) * timestep);
+			point[i].y += static_cast<float>((m[3] * point[i].x + (point[i].z - m[1]) * point[i].y) * timestep);
+			point[i].z += static_cast<float>((m[2] + m[0] * point[i].z - (point[i].z * point[i].z * point[i].z) / 3 - (point[i].x * point[i].x + point[i].y * point[i].y) * (1 + m[4] * point[i].z) + m[5] * point[i].z * point[i].x * point[i].x * point[i].x) * timestep);
+		}
+		break;
+	}
+	case 3:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>((point[i].x * (4 - point[i].y) + m[0] * point[i].z) * timestep);
+			point[i].y += static_cast<float>((-point[i].y * (1 - point[i].x * point[i].x)) * timestep);
+			point[i].z += static_cast<float>((-point[i].x * (1.5 - point[i].z * m[1]) - 0.05 * point[i].z) * timestep);
+		}
+		break;
+	}
+	case 4:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>((m[0] * point[i].x - point[i].y * point[i].z) * timestep * 0.25f);
+			point[i].y += static_cast<float>((m[1] * point[i].y + point[i].x * point[i].z) * timestep * 0.25f);
+			point[i].z += static_cast<float>((m[2] * point[i].z + point[i].x * point[i].y / 3) * timestep * 0.25f);
+		}
+		break;
+	}
+	case 5:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>((-m[0] * point[i].x - 4 * point[i].y - 4 * point[i].z - point[i].y * point[i].y) * timestep);
+			point[i].y += static_cast<float>((-m[0] * point[i].y - 4 * point[i].z - 4 * point[i].x - point[i].z * point[i].z) * timestep);
+			point[i].z += static_cast<float>((-m[0] * point[i].z - 4 * point[i].x - 4 * point[i].y - point[i].x * point[i].x) * timestep);
+		}
+		break;
+	}
+	case 6:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>(((1 / m[1] - m[0]) * point[i].x + point[i].z + point[i].x * point[i].y) * timestep);
+			point[i].y += static_cast<float>((-m[1] * point[i].y - point[i].x * point[i].x) * timestep);
+			point[i].z += static_cast<float>((-point[i].x - m[2] * point[i].z) * timestep);
+		}
+		break;
+	}
+	case 7:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>((-m[0] * point[i].x + point[i].y + 10.0f * point[i].y * point[i].z) * timestep);
+			point[i].y += static_cast<float>((-point[i].x - 0.4 * point[i].y + 5.0f * point[i].x * point[i].z) * timestep);
+			point[i].z += static_cast<float>((m[1] * point[i].z - 5.0f * point[i].x * point[i].y) * timestep);
+		}
+		break;
+	}
+	case 8:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>((point[i].y) * timestep);
+			point[i].y += static_cast<float>((-point[i].x + point[i].y * point[i].z) * timestep);
+			point[i].z += static_cast<float>((m[0] - point[i].y * point[i].y) * timestep);
+		}
+		break;
+	}
+	case 9:
+	{
+		for (unsigned i = 0; i < num_points; i++)
+		{
+			point[i].x += static_cast<float>((-m[0] * point[i].x + sin(point[i].y)) * timestep);
+			point[i].y += static_cast<float>((-m[0] * point[i].y + sin(point[i].z)) * timestep);
+			point[i].z += static_cast<float>((-m[0] * point[i].z + sin(point[i].x)) * timestep);
+		}
+		break;
+	}
+	}
+		}
 	function updateWindowShape (easing = true)
 	{
 		// storing the actual offset in a proxy that we update against in the render function
