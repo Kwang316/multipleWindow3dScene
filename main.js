@@ -142,7 +142,8 @@ else
 		}
 	}
 	
-	function initializeSphere(sphere, params) {
+	function initializeSphere(sphere, params) 
+	{
 	  // Set the initial position of the sphere based on the Lorenz attractor parameters
 	  sphere.position.set(params.initialX, params.initialY, params.initialZ);
 	
@@ -152,7 +153,8 @@ else
 	  }
 	}
 	
-	function updateSpherePosition(sphere, params, t) {
+	function updateSpherePosition(sphere, params, t) 
+	{
 	  // Update the sphere position based on the Lorenz attractor equation associated with the parameters
 	  switch (params.equation) {
 	    case 0:
@@ -179,7 +181,8 @@ else
 	  sphere.position.z += (x * y - c * z) * t;
 	}
 	
-	function updateChenPosition(sphere, params, t) {
+	function updateChenPosition(sphere, params, t)
+	{
 	  // Implement Chen's attractor equation to update the sphere position
 	  const [a, b, c, d] = params;
 	  const x = sphere.position.x;
